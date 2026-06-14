@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Register">
+<meta name="theme-color" content="#0e0e0e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Maggiore's Register</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0e0e0e;
+  --panel: #181818;
+  --border: #252525;
+  --green: #00e676;
+  --green-dim: #004d26;
+  --red: #ff1744;
+  --amber: #ffab00;
+  --blue: #2979ff;
+  --purple: #bb86fc;
+  --text: #f0f0f0;
+  --muted: #444;
+  --disp-bg: #001208;
+  --disp-green: #00e676;
+  --disp-dim: #004d26;
+}
+
+html { height: 100%; height: -webkit-fill-available; }
+body {
+  display: flex; flex-direction: column;
+  height: 100vh; height: -webkit-fill-available;
+  max-width: 500px; margin: 0 auto;
+  background: var(--bg); color: var(--text);
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  /* Safe areas for notch/home bar */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ── DISPLAY ── */
+#display {
+  background: var(--disp-bg);
+  border-bottom: 2px solid #003318;
+  padding: 8px 14px 6px;
+  flex-shrink: 0;
+}
+.d-top {
+  display: flex; justify-content: space-between;
+  font-size: 9px; color: var(--disp-dim);
+  letter-spacing: 2px; margin-bottom: 2px;
+}
+.d-entry {
+  font-size: 14px; color: var(--disp-dim);
+  min-height: 18px; letter-spacing: 1px;
+  white-space: nowrap; overflow: hidden;
+}
+.d-entry span { color: var(--disp-green); }
+.d-amount {
+  font-size: 42px; color: var(--disp-green);
+  text-align: right; letter-spacing: 4px;
+  text-shadow: 0 0 20px #00e67633; line-height: 1.1;
+}
+.d-bot {
+  display: flex; justify-content: space-between;
+  font-size: 9px; color: var(--disp-dim); margin-top: 2px;
+}
+
+/* ── TAPE ── */
+#tape {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: #131313; border-bottom: 1px solid var(--border);
+  min-height: 0;
+}
+#tape-inner { padding: 5px 10px 4px; }
+.t-hdr {
+  font-size: 9px; letter-spacing: 2px; color: var(--muted);
+  text-align: center; padding: 3px 0;
+  border-bottom: 1px dashed #252525; margin-bottom: 3px;
+}
+.li {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 0; border-bottom: 1px solid #1b1b1b; font-size: 13px;
+}
+.li-num   { color: var(--muted); font-size: 10px; min-width: 16px; }
+.li-name  { flex: 1; color: #ddd; }
+.li-tag   { font-size: 9px; color: var(--amber); letter-spacing: 1px; }
+.li-price { color: var(--disp-green); min-width: 58px; text-align: right; }
+.li-del   { background: none; border: none; color: #2a2a2a; cursor: pointer; font-size: 15px; padding: 2px 4px; transition: color .1s; }
+.li-del:active { color: var(--red); }
+.t-empty  { color: var(--muted); font-size: 11px; text-align: center; padding: 14px 0; }
+
+/* ── TOTALS ── */
+#totals {
+  background: #141414; border-bottom: 1px solid var(--border);
+  padding: 5px 14px; display: flex; flex-shrink: 0;
+}
+.tot { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+.tot:last-child { text-align: right; }
+.tot-lbl { color: var(--muted); font-size: 9px; letter-spacing: 1px; }
+.tot-val { color: var(--text); font-size: 13px; }
+.tot-val.big { color: var(--disp-green); font-size: 18px; font-weight: bold; }
+
+/* ── KEYPAD ── */
+#keypad {
+  flex-shrink: 0; background: var(--panel);
+  padding: 8px; display: flex; flex-direction: column; gap: 6px;
+}
+
+#desc-row {
+  display: flex; gap: 6px; align-items: center;
+}
+#desc-lbl { font-size: 9px; color: var(--muted); letter-spacing: 1px; white-space: nowrap; }
+#desc-input {
+  flex: 1; background: #0a0a0a; border: 1px solid #252525;
+  color: var(--text); font-family: 'Courier New', monospace;
+  font-size: 14px; padding: 7px 10px; border-radius: 4px; outline: none;
+  -webkit-appearance: none;
+}
+#desc-input:focus { border-color: var(--green); }
+#desc-input::placeholder { color: #2a2a2a; }
+
+/* 5-col grid */
+#numgrid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 5px;
+}
+
+.key {
+  background: linear-gradient(to bottom, #2a2a2a, #1e1e1e);
+  border: 1px solid #333; border-bottom: 3px solid #000;
+  border-radius: 6px; color: var(--text);
+  font-family: 'Courier New', monospace;
+  font-size: 22px; font-weight: bold;
+  padding: 14px 4px; cursor: pointer;
+  user-select: none; text-align: center; line-height: 1;
+  transition: filter .07s, transform .07s;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+.key:active { filter: brightness(.55); transform: translateY(2px); border-bottom-width: 1px; }
+.key-sub { font-size: 8px; font-weight: normal; color: var(--muted); display: block; margin-top: 2px; }
+
+.k-clr  { background: linear-gradient(to bottom, #2e1010, #1e0808); border-color: #441010; color: var(--red); font-size: 13px; }
+.k-back { background: linear-gradient(to bottom, #241a00, #160f00); border-color: #3a2a00; color: var(--amber); font-size: 20px; }
+
+.k-enter {
+  background: linear-gradient(to bottom, #005c2e, #003018);
+  border-color: #007a3d; color: var(--green);
+  font-size: 13px; letter-spacing: .5px;
+  grid-column: 4; grid-row: 2 / 4;
+  padding: 0;
+}
+.k-xfor {
+  background: linear-gradient(to bottom, #1e1030, #100818);
+  border-color: #4a20a0; color: var(--purple);
+  font-size: 11px; grid-column: 5; grid-row: 2;
+}
+.k-tax {
+  background: linear-gradient(to bottom, #1e1600, #100d00);
+  border-color: #3a2c00; color: var(--amber);
+  font-size: 12px; grid-column: 5; grid-row: 3;
+}
+.k-cash {
+  background: linear-gradient(to bottom, #002060, #001030);
+  border-color: #002f99; color: #6699ff; font-size: 13px;
+}
+.k-void {
+  background: linear-gradient(to bottom, #280000, #140000);
+  border-color: #3e0000; color: #ff5555; font-size: 12px;
+}
+.k-rcpt {
+  background: linear-gradient(to bottom, #1a1a1a, #0e0e0e);
+  border-color: #2e2e2e; color: #888; font-size: 12px;
+}
+
+/* ── OVERLAYS ── */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: #000000cc;
+  align-items: center; justify-content: center; z-index: 300;
+}
+.overlay.open { display: flex; }
+
+/* Cash */
+#cash-box {
+  background: var(--disp-bg); border: 2px solid var(--green-dim);
+  border-radius: 10px; padding: 20px; width: 300px;
+  font-family: 'Courier New', monospace;
+}
+.cb-lbl { font-size: 9px; color: var(--disp-dim); letter-spacing: 2px; margin-bottom: 3px; }
+.cb-big { font-size: 32px; color: var(--disp-green); text-align: right; margin-bottom: 12px; }
+#cash-in {
+  width: 100%; background: #000; border: 1px solid var(--green-dim);
+  color: var(--disp-green); font-family: 'Courier New', monospace;
+  font-size: 28px; padding: 8px 10px; border-radius: 4px;
+  outline: none; text-align: right; margin-bottom: 8px;
+  -webkit-appearance: none;
+}
+.cb-change { font-size: 34px; text-align: right; margin-bottom: 16px; color: var(--disp-green); }
+.cb-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.cb-btn { padding: 13px; border: none; border-radius: 6px; font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; cursor: pointer; touch-action: manipulation; }
+#cb-ok { background: var(--green); color: #000; }
+#cb-no { background: #1e1e1e; color: #888; border: 1px solid #2a2a2a; }
+
+/* Receipt */
+#rcpt-box {
+  background: #fff; color: #111;
+  font-family: 'Courier New', monospace; font-size: 11px;
+  padding: 16px; border-radius: 6px;
+  max-width: 300px; width: 90%; max-height: 82vh; overflow-y: auto;
+}
+#rcpt-box pre { white-space: pre-wrap; }
+.rcpt-btns { display: flex; gap: 8px; margin-top: 12px; }
+.rcpt-btn { flex: 1; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-weight: bold; font-size: 13px; touch-action: manipulation; }
+#rcpt-print { background: #111; color: #fff; }
+#rcpt-close { background: #ddd; color: #111; }
+
+/* Install banner */
+#install-banner {
+  display: none;
+  position: fixed; bottom: env(safe-area-inset-bottom, 10px); left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a; border: 1px solid var(--green-dim);
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; color: var(--text);
+  z-index: 400; white-space: nowrap;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 20px #00000088;
+}
+#install-btn { background: var(--green); color: #000; border: none; border-radius: 4px; padding: 6px 12px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; cursor: pointer; }
+#install-x { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0 2px; }
+
+@media print {
+  body > *:not(#rcpt-ov) { display: none !important; }
+  #rcpt-ov, #rcpt-box { display: block !important; }
+  .rcpt-btns { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div id="display">
+  <div class="d-top">
+    <span>REG</span>
+    <span id="d-txn">TXN #0001</span>
+    <span id="d-clock"></span>
+  </div>
+  <div class="d-entry" id="d-entry">&nbsp;</div>
+  <div class="d-amount" id="d-amount">0.00</div>
+  <div class="d-bot">
+    <span id="d-count">0 ITEMS</span>
+    <span id="d-mode">READY</span>
+  </div>
+</div>
+
+<div id="tape">
+  <div id="tape-inner">
+    <div class="t-hdr">TRANSACTION #0001</div>
+    <div class="t-empty">Type a price and press ENTER</div>
+  </div>
+</div>
+
+<div id="totals">
+  <div class="tot">
+    <div class="tot-lbl">SUBTOTAL</div>
+    <div class="tot-val" id="t-sub">$0.00</div>
+  </div>
+  <div class="tot" id="t-tax-wrap" style="display:none">
+    <div class="tot-lbl">TAX 6.5%</div>
+    <div class="tot-val" id="t-tax">$0.00</div>
+  </div>
+  <div class="tot">
+    <div class="tot-lbl">TOTAL</div>
+    <div class="tot-val big" id="t-total">$0.00</div>
+  </div>
+</div>
+
+<div id="keypad">
+  <div id="desc-row">
+    <span id="desc-lbl">DESC</span>
+    <input id="desc-input" type="text" placeholder="item name (optional)"
+           autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" />
+  </div>
+
+  <div id="numgrid">
+    <!-- Row 1 -->
+    <button class="key" data-k="7">7</button>
+    <button class="key" data-k="8">8</button>
+    <button class="key" data-k="9">9</button>
+    <button class="key k-clr" data-k="CLR">CLR<span class="key-sub">ALL</span></button>
+    <button class="key k-back" data-k="BACK">⌫</button>
+    <!-- Row 2 -->
+    <button class="key" data-k="4">4</button>
+    <button class="key" data-k="5">5</button>
+    <button class="key" data-k="6">6</button>
+    <button class="key k-enter" data-k="ENTER">ENTER<br><span class="key-sub">ADD ITEM</span></button>
+    <button class="key k-xfor" data-k="XFOR">X/FOR<span class="key-sub">QTY×PRICE</span></button>
+    <!-- Row 3 -->
+    <button class="key" data-k="1">1</button>
+    <button class="key" data-k="2">2</button>
+    <button class="key" data-k="3">3</button>
+    <!-- ENTER spans -->
+    <button class="key k-tax" data-k="TAX">TAX<span class="key-sub">6.5%</span></button>
+    <!-- Row 4 -->
+    <button class="key" data-k="0">0</button>
+    <button class="key" style="font-size:16px" data-k="00">00</button>
+    <button class="key" style="font-size:22px" data-k=".">·</button>
+    <button class="key k-cash" data-k="CASH">💵<span class="key-sub">CASH</span></button>
+    <button class="key k-void" data-k="VOID">VOID<span class="key-sub">LAST</span></button>
+  </div>
+</div>
+
+<!-- Cash overlay -->
+<div class="overlay" id="cash-ov">
+  <div id="cash-box">
+    <div class="cb-lbl">TOTAL DUE</div>
+    <div class="cb-big" id="cb-total">$0.00</div>
+    <div class="cb-lbl">CASH TENDERED</div>
+    <input id="cash-in" type="number" placeholder="0.00" step="0.01" min="0" inputmode="decimal" />
+    <div class="cb-lbl">CHANGE DUE</div>
+    <div class="cb-change" id="cb-change">$0.00</div>
+    <div class="cb-btns">
+      <button class="cb-btn" id="cb-no">CANCEL</button>
+      <button class="cb-btn" id="cb-ok">✓ CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<!-- Receipt overlay -->
+<div class="overlay" id="rcpt-ov">
+  <div id="rcpt-box">
+    <pre id="rcpt-txt"></pre>
+    <div class="rcpt-btns">
+      <button class="rcpt-btn" id="rcpt-close">Close & New Sale</button>
+      <button class="rcpt-btn" id="rcpt-print">Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Install banner -->
+<div id="install-banner" style="display:none">
+  <span>📲 Add to Home Screen</span>
+  <button id="install-btn">Install</button>
+  <button id="install-x">✕</button>
+</div>
+
+<script>
+// ── Register service worker ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ── Install prompt ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+document.getElementById('install-btn').addEventListener('click', () => {
+  if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
+  document.getElementById('install-banner').style.display = 'none';
+});
+document.getElementById('install-x').addEventListener('click', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+const $ = id => document.getElementById(id);
+
+// ── State ──
+let buf     = '';
+let xforQty = 0;
+let items   = [];
+const TAX   = 6.5;
+let txn     = parseInt(localStorage.getItem('txn') || '1', 10);
+
+// ── Clock ──
+const tick = () => $('d-clock').textContent = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+setInterval(tick, 1000); tick();
+
+// ── Helpers ──
+const fmt      = n => '$' + n.toFixed(2);
+const bufToAmt = b => parseInt(b || '0', 10) / 100;
+const fmtBuf   = b => {
+  const c = parseInt(b || '0', 10);
+  return Math.floor(c/100) + '.' + String(c%100).padStart(2,'0');
+};
+const getSub   = () => items.reduce((s,i) => s + i.base, 0);
+const getTax   = () => items.reduce((s,i) => s + i.taxAmt, 0);
+const getTotal = () => items.reduce((s,i) => s + i.price, 0);
+
+// ── Render ──
+function render() {
+  $('d-amount').textContent = buf ? fmtBuf(buf) : '0.00';
+  const desc = $('desc-input').value.trim().toUpperCase();
+
+  if (xforQty > 0 && buf) {
+    $('d-entry').innerHTML = `<span>${xforQty} X/FOR</span>  $${fmtBuf(buf)}`;
+  } else if (xforQty > 0) {
+    $('d-entry').innerHTML = `<span>${xforQty} X/FOR</span>  — enter price`;
+  } else if (buf) {
+    $('d-entry').innerHTML = (desc ? `<span>${desc}</span>  ` : '') + '$' + fmtBuf(buf);
+  } else {
+    $('d-entry').innerHTML = '&nbsp;';
+  }
+
+  const sub = getSub(), tax = getTax(), total = getTotal();
+  $('t-sub').textContent   = fmt(sub);
+  $('t-tax').textContent   = fmt(tax);
+  $('t-total').textContent = fmt(total);
+  $('t-tax-wrap').style.display = tax > 0 ? '' : 'none';
+  $('d-count').textContent = items.length + ' ITEM' + (items.length !== 1 ? 'S' : '');
+  $('d-txn').textContent   = 'TXN #' + String(txn).padStart(4,'0');
+
+  const inner = $('tape-inner');
+  inner.innerHTML = `<div class="t-hdr">TRANSACTION #${String(txn).padStart(4,'0')}</div>`;
+  if (!items.length) {
+    inner.innerHTML += '<div class="t-empty">Type a price and press ENTER</div>';
+  } else {
+    items.forEach((item, i) => {
+      const row = document.createElement('div');
+      row.className = 'li';
+      const qLabel = item.qty > 1 ? `${item.qty}× ` : '';
+      const tTag   = item.taxAmt > 0 ? '<span class="li-tag">TAX</span>' : '';
+      row.innerHTML = `
+        <span class="li-num">${i+1}</span>
+        <span class="li-name">${qLabel}${item.name}</span>
+        ${tTag}
+        <span class="li-price">${fmt(item.price)}</span>
+        <button class="li-del" data-i="${i}">✕</button>`;
+      inner.appendChild(row);
+    });
+  }
+  inner.querySelectorAll('.li-del').forEach(b =>
+    b.addEventListener('click', () => { items.splice(+b.dataset.i, 1); render(); })
+  );
+  $('tape').scrollTop = $('tape').scrollHeight;
+}
+
+// ── Add item ──
+function addItem(withTax) {
+  if (!buf || bufToAmt(buf) === 0) return;
+  const unitBase = bufToAmt(buf);
+  const qty      = xforQty > 0 ? xforQty : 1;
+  const base     = unitBase * qty;
+  const taxAmt   = withTax ? Math.round(base * TAX) / 100 : 0;
+  const price    = base + taxAmt;
+  const name     = $('desc-input').value.trim().toUpperCase() || 'ITEM';
+  items.push({ name, qty, base, taxAmt, price });
+  buf = ''; xforQty = 0;
+  $('desc-input').value = '';
+  $('d-mode').textContent = withTax ? '+TAX' : 'ADDED';
+  render();
+  setTimeout(() => { if (['ADDED','+TAX'].includes($('d-mode').textContent)) $('d-mode').textContent = 'READY'; }, 700);
+}
+
+// ── Key handler ──
+function handleKey(k) {
+  if (k >= '0' && k <= '9') {
+    if (buf.length >= 8) return;
+    buf += k; render();
+  } else if (k === '00') {
+    if (buf.length < 7) buf += '00'; render();
+  } else if (k === 'BACK') {
+    buf = buf.slice(0,-1); render();
+  } else if (k === 'CLR') {
+    buf = ''; xforQty = 0;
+    $('desc-input').value = '';
+    $('d-mode').textContent = 'READY';
+    render();
+  } else if (k === 'XFOR') {
+    const qty = parseInt(buf, 10);
+    if (!qty || qty < 1) {
+      $('d-mode').textContent = 'TYPE QTY 1ST';
+      setTimeout(() => $('d-mode').textContent = 'READY', 1000);
+      return;
+    }
+    xforQty = qty; buf = '';
+    $('d-mode').textContent = xforQty + ' X/FOR...';
+    render();
+  } else if (k === 'ENTER') {
+    addItem(false);
+  } else if (k === 'TAX') {
+    addItem(true);
+  } else if (k === 'VOID') {
+    if (items.length) {
+      items.pop();
+      $('d-mode').textContent = 'VOID';
+      render();
+      setTimeout(() => { if ($('d-mode').textContent === 'VOID') $('d-mode').textContent = 'READY'; }, 700);
+    }
+  } else if (k === 'CASH') {
+    if (!items.length) return;
+    $('cb-total').textContent = fmt(getTotal());
+    $('cash-in').value = '';
+    $('cb-change').textContent = '$0.00';
+    $('cb-change').style.color = 'var(--disp-green)';
+    $('cash-ov').classList.add('open');
+    setTimeout(() => $('cash-in').focus(), 80);
+    $('d-mode').textContent = 'CASH';
+  }
+}
+
+document.querySelectorAll('.key').forEach(btn =>
+  btn.addEventListener('click', () => handleKey(btn.dataset.k))
+);
+
+// Physical keyboard
+document.addEventListener('keydown', e => {
+  if (document.activeElement === $('desc-input')) {
+    if (e.key === 'Enter') { e.preventDefault(); handleKey('ENTER'); }
+    return;
+  }
+  if (document.activeElement === $('cash-in')) return;
+  if (e.key >= '0' && e.key <= '9') handleKey(e.key);
+  else if (e.key === 'Backspace') handleKey('BACK');
+  else if (e.key === 'Delete' || e.key === 'Escape') handleKey('CLR');
+  else if (e.key === 'Enter') handleKey('ENTER');
+});
+
+// ── Cash overlay ──
+$('cash-in').addEventListener('input', () => {
+  const t = parseFloat($('cash-in').value) || 0;
+  const ch = t - getTotal();
+  $('cb-change').textContent = fmt(Math.max(0, ch));
+  $('cb-change').style.color = ch >= 0 ? 'var(--disp-green)' : 'var(--red)';
+});
+$('cash-in').addEventListener('keydown', e => { if (e.key === 'Enter') $('cb-ok').click(); });
+$('cb-no').addEventListener('click', () => {
+  $('cash-ov').classList.remove('open');
+  $('d-mode').textContent = 'READY';
+});
+$('cb-ok').addEventListener('click', () => {
+  const t = parseFloat($('cash-in').value) || 0;
+  if (t < getTotal()) {
+    $('cb-change').textContent = 'NOT ENOUGH';
+    $('cb-change').style.color = 'var(--red)';
+    return;
+  }
+  $('cash-ov').classList.remove('open');
+  showReceipt('CASH', t);
+});
+
+// ── Receipt ──
+function buildReceipt(method, tendered) {
+  const W = 32, now = new Date();
+  const sub = getSub(), tax = getTax(), total = getTotal();
+  const change = method === 'CASH' && tendered != null ? Math.max(0, tendered - total) : null;
+  const c  = s => s.padStart(Math.floor((W+s.length)/2)).padEnd(W);
+  const lr = (l,r) => l.substring(0, W-r.length-1).padEnd(W-r.length) + r;
+  const line = '-'.repeat(W), dline = '='.repeat(W);
+  let r = '';
+  r += c("MAGGIORE'S DRIVE THRU") + '\n';
+  r += c('Canton, OH') + '\n';
+  r += line + '\n';
+  r += c(now.toLocaleDateString() + ' ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})) + '\n';
+  r += c('TXN #' + String(txn).padStart(4,'0')) + '\n';
+  r += dline + '\n';
+  items.forEach((item, i) => {
+    const label = (item.qty > 1 ? item.qty+'x ' : '') + item.name.substring(0,18) + (item.taxAmt > 0 ? ' T' : '');
+    r += lr((i+1)+'. '+label, fmt(item.price)) + '\n';
+  });
+  r += line + '\n';
+  r += lr('SUBTOTAL', fmt(sub)) + '\n';
+  if (tax > 0) r += lr('TAX (6.5%)', fmt(tax)) + '\n';
+  r += dline + '\n';
+  r += lr('TOTAL', fmt(total)) + '\n';
+  if (method) r += lr(method, fmt(tendered ?? total)) + '\n';
+  if (change !== null) r += lr('CHANGE', fmt(change)) + '\n';
+  r += dline + '\n';
+  r += c('THANK YOU!') + '\n';
+  return r;
+}
+
+function showReceipt(method, tendered) {
+  $('rcpt-txt').textContent = buildReceipt(method, tendered);
+  $('rcpt-ov').classList.add('open');
+  if (method) {
+    txn++;
+    localStorage.setItem('txn', txn);
+  }
+}
+
+$('rcpt-print').addEventListener('click', () => window.print());
+$('rcpt-close').addEventListener('click', () => {
+  $('rcpt-ov').classList.remove('open');
+  items = []; buf = ''; xforQty = 0;
+  $('desc-input').value = '';
+  $('d-mode').textContent = 'READY';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
