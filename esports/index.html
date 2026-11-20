@@ -435,7 +435,7 @@ footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wr
       </aside>
     </div>
 
-    <form class="card contact" id="contact" novalidate>
+    <form class="card contact" id="contact" action="https://formspree.io/f/xdeglkve" method="POST" novalidate>
       <div class="contact-head">
         <h3>Request this quote</h3>
         <p>We'll reply within two school days to book a site survey. Your estimate above is sent with your message.</p>
@@ -622,11 +622,23 @@ const FORMSPREE_ID = 'xdeglkve';
     sendBtn.disabled = true; say('Sending...');
     try {
       const r = await fetch('https://formspree.io/f/' + FORMSPREE_ID, { method: 'POST', body: data, headers: { Accept: 'application/json' } });
-      if (!r.ok) throw new Error();
+      if (!r.ok) {
+        // Formspree explains rejections as { errors: [{ field, message }] }
+        const body = await r.json().catch(() => ({}));
+        const errs = Array.isArray(body.errors) ? body.errors : [];
+        const fieldIds = { name: 'cName', email: 'cEmail', phone: 'cPhone', message: 'cMsg' };
+        errs.forEach(e => { if (fieldIds[e.field]) $(fieldIds[e.field]).setAttribute('aria-invalid', 'true'); });
+        const label = f => f ? f.charAt(0).toUpperCase() + f.slice(1) + ' ' : '';
+        const detail = errs.filter(e => e.message).map(e => label(e.field) + e.message + '.').join(' ');
+        const e = new Error(detail); e.fromFormspree = true;
+        throw e;
+      }
       form.reset();
       say("Thanks! Your quote request was sent. We'll be in touch within two school days.", 'ok');
-    } catch {
-      say('Sorry, that did not send. Please try again, or copy the quote summary and email it to us.', 'err');
+    } catch (err) {
+      const why = err && err.fromFormspree && err.message ? "That didn't send: " + err.message + ' '
+        : "Sorry, that didn't send. Check your connection and try again, or copy the quote summary and email it to us.";
+      say(err && err.fromFormspree && err.message ? why + 'Please fix it and try again.' : why, 'err');
     } finally {
       sendBtn.disabled = false;
     }
