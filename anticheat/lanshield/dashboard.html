@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LANShield Console</title>
+<style>
+:root {
+  --bg: #f6f7fb; --surface: #fff; --surface-2: #eef1f7; --border: #d9deea;
+  --text: #121826; --muted: #5a6478; --accent: #5b4bff; --ok: #12a150; --warn: #b07800; --bad: #d63b4f; --info: #0a8f86;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0f17; --surface: #121826; --surface-2: #1a2233; --border: #263049;
+    --text: #e8ecf5; --muted: #95a0b8; --accent: #8a7dff; --ok: #3ccf7a; --warn: #f0b429; --bad: #ff6b7d; --info: #2ed3c5;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0b0f17; --surface: #121826; --surface-2: #1a2233; --border: #263049;
+  --text: #e8ecf5; --muted: #95a0b8; --accent: #8a7dff; --ok: #3ccf7a; --warn: #f0b429; --bad: #ff6b7d; --info: #2ed3c5;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 14px 20px; border-bottom: 1px solid var(--border); background: var(--surface); }
+header h1 { font-size: 17px; }
+header h1 span { color: var(--muted); font-weight: 400; }
+#conn { font: 600 12px var(--mono); display: inline-flex; align-items: center; gap: 6px; }
+#conn::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+#conn.on { color: var(--ok); } #conn.off { color: var(--bad); }
+.kpis { display: grid; grid-template-columns: repeat(4, 1fr); border-bottom: 1px solid var(--border); background: var(--surface); }
+@media (max-width: 640px) { .kpis { grid-template-columns: 1fr 1fr; } }
+.kpi { padding: 12px 20px; border-right: 1px solid var(--border); }
+.kpi span { font-size: 12px; color: var(--muted); display: block; }
+.kpi b { font: 700 24px var(--mono); }
+.kpi b.bad { color: var(--bad); } .kpi b.warn { color: var(--warn); }
+main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); min-height: calc(100vh - 140px); }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+h2 { font: 600 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.left { padding: 18px 20px; border-right: 1px solid var(--border); }
+.right { padding: 18px 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.st { border: 1px solid var(--border); border-radius: 10px; padding: 10px; background: var(--surface); cursor: pointer; text-align: left; font: inherit; color: inherit; }
+.st:hover { border-color: var(--accent); }
+.st.sel { outline: 2px solid var(--accent); }
+.st .top { display: flex; justify-content: space-between; align-items: center; font: 700 14px var(--mono); }
+.st .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--ok); }
+.st.warn { border-color: var(--warn); } .st.warn .dot { background: var(--warn); }
+.st.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, var(--surface)); } .st.bad .dot { background: var(--bad); }
+.st .sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.st .rep { font: 11px var(--mono); color: var(--muted); margin-top: 4px; }
+.st .rep.stale { color: var(--warn); }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; align-items: center; }
+.filters button { font: 600 12px system-ui; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+.filters button.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+.alerts { list-style: none; display: grid; gap: 8px; }
+.al { background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--info); border-radius: 8px; padding: 10px 12px; }
+.al.bad { border-left-color: var(--bad); } .al.warn { border-left-color: var(--warn); }
+.al.resolved { opacity: .55; }
+.al .meta { display: flex; gap: 10px; flex-wrap: wrap; font: 11px var(--mono); color: var(--muted); margin-bottom: 4px; }
+.al .meta b { color: var(--text); }
+.al .msg { font-size: 14px; }
+.al .note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.al .act { margin-top: 8px; display: flex; gap: 8px; }
+.al .act input { flex: 1; font: inherit; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text); min-width: 0; }
+.al .act button { font: 600 12px system-ui; padding: 6px 10px; border-radius: 6px; border: 0; background: var(--accent); color: #fff; cursor: pointer; }
+.empty { color: var(--muted); font-size: 14px; padding: 16px 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>LANShield Console <span id="event"></span></h1>
+  <span id="conn" class="off">connecting</span>
+</header>
+<div class="kpis">
+  <div class="kpi"><span>Stations reporting</span><b id="kRep">–</b></div>
+  <div class="kpi"><span>Serious flags open</span><b id="kBad">–</b></div>
+  <div class="kpi"><span>To check</span><b id="kWarn">–</b></div>
+  <div class="kpi"><span>Total alerts</span><b id="kAll">–</b></div>
+</div>
+<main>
+  <section class="left">
+    <h2>Stations</h2>
+    <div class="grid" id="grid"></div>
+  </section>
+  <section class="right">
+    <h2>Alerts</h2>
+    <div class="filters" id="filters">
+      <button data-f="open" class="on">Open</button>
+      <button data-f="all">All</button>
+      <button data-f="resolved">Resolved</button>
+      <span id="stFilter" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+    <ul class="alerts" id="alerts"></ul>
+  </section>
+</main>
+<script>
+let filter = 'open', station = null, data = null;
+const $ = id => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const fmtTime = ts => new Date(ts * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+const typing = () => document.activeElement && document.activeElement.tagName === 'INPUT';
+
+function render() {
+  if (!data) return;
+  $('event').textContent = '· ' + data.event;
+  const reporting = data.stations.filter(s => !s.stale).length;
+  $('kRep').textContent = reporting + '/' + data.stations.length;
+  $('kBad').textContent = data.open_bad; $('kBad').className = data.open_bad ? 'bad' : '';
+  $('kWarn').textContent = data.open_warn; $('kWarn').className = data.open_warn ? 'warn' : '';
+  $('kAll').textContent = data.alerts.filter(a => a.severity !== 'info').length;
+
+  const grid = $('grid'); grid.replaceChildren();
+  for (const s of data.stations) {
+    const b = el('button', 'st ' + (s.state === 'ok' ? '' : s.state) + (station === s.id ? ' sel' : ''));
+    b.type = 'button';
+    const top = el('div', 'top'); top.append(el('span', null, s.id), el('span', 'dot'));
+    b.append(top, el('div', 'sub', s.team + ' · ' + s.player));
+    b.append(el('div', 'rep' + (s.stale ? ' stale' : ''),
+      s.report_age == null ? 'no station report' : (s.stale ? 'last report ' : 'checked ') + s.report_age + 's ago'));
+    if (s.open) b.append(el('div', 'sub', s.open + ' open flag' + (s.open > 1 ? 's' : '')));
+    b.onclick = () => { station = station === s.id ? null : s.id; render(); };
+    grid.append(b);
+  }
+
+  $('stFilter').textContent = station ? 'Showing ' + station + ' only (click it again to clear)' : '';
+  if (typing()) return;   // don't wipe a note the referee is writing
+  const list = $('alerts'); list.replaceChildren();
+  const shown = data.alerts.filter(a =>
+    (!station || a.station === station || a.station === 'all') &&
+    (filter === 'all' || (filter === 'open' ? a.status === 'open' : a.status === 'resolved')));
+  if (!shown.length) list.append(el('li', 'empty', filter === 'open' ? 'No open alerts. All clear.' : 'Nothing here.'));
+  for (const a of shown) {
+    const li = el('li', 'al ' + a.severity + (a.status === 'resolved' ? ' resolved' : ''));
+    const meta = el('div', 'meta');
+    meta.append(el('b', null, a.station), el('span', null, fmtTime(a.ts)), el('span', null, a.category.replace(/_/g, ' ')),
+      el('span', null, 'via ' + a.source));
+    if (a.count > 1) meta.append(el('span', null, '×' + a.count + ', last ' + fmtTime(a.last_ts)));
+    li.append(meta, el('div', 'msg', a.message));
+    if (a.status === 'resolved') li.append(el('div', 'note', 'Resolved: ' + (a.note || 'no note')));
+    if (a.status === 'open') {
+      const act = el('div', 'act');
+      const inp = el('input'); inp.placeholder = 'Referee note (what you found)'; inp.setAttribute('aria-label', 'Referee note');
+      const btn = el('button', null, 'Resolve');
+      btn.onclick = async () => {
+        await fetch('/api/resolve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: a.id, note: inp.value }) });
+        inp.blur(); poll();
+      };
+      act.append(inp, btn); li.append(act);
+    }
+    list.append(li);
+  }
+}
+
+async function poll() {
+  try {
+    const r = await fetch('/api/state', { cache: 'no-store' });
+    data = await r.json();
+    $('conn').textContent = 'live'; $('conn').className = 'on';
+    render();
+  } catch {
+    $('conn').textContent = 'console offline'; $('conn').className = 'off';
+  }
+}
+$('filters').addEventListener('click', e => {
+  const f = e.target.dataset && e.target.dataset.f; if (!f) return;
+  filter = f;
+  document.querySelectorAll('#filters button').forEach(b => b.classList.toggle('on', b.dataset.f === f));
+  render();
+});
+poll(); setInterval(poll, 2000);
+</script>
+</body>
+</html>
