@@ -1,0 +1,51 @@
+{
+  "station": "P04",
+  "account": "tnguyen",
+  "hostname": "ESPORTS-P04",
+  "os": "Windows 11",
+  "ts": 1795197638.020281,
+  "processes": [
+    "System",
+    "smss.exe",
+    "csrss.exe",
+    "wininit.exe",
+    "services.exe",
+    "lsass.exe",
+    "svchost.exe",
+    "explorer.exe",
+    "dwm.exe",
+    "RuntimeBroker.exe",
+    "SearchHost.exe",
+    "MsMpEng.exe",
+    "RiotClientServices.exe",
+    "VALORANT-Win64-Shipping.exe",
+    "vgtray.exe",
+    "Discord.exe",
+    "EpicGamesLauncher.exe",
+    "RocketLeague.exe",
+    "chakra_helper.exe",
+    "Shakti.exe"
+  ],
+  "usb": [
+    {
+      "id": "046d:c08b",
+      "name": "G502 HERO Gaming Mouse"
+    },
+    {
+      "id": "1532:0241",
+      "name": "Razer BlackWidow"
+    },
+    {
+      "id": "0951:16a4",
+      "name": "HyperX Cloud"
+    },
+    {
+      "id": "05e3:0610",
+      "name": "Generic USB Hub"
+    }
+  ],
+  "adapters": [
+    "Ethernet | Intel(R) Ethernet Connection I219-V | Up",
+    "Bluetooth Network Connection | Bluetooth Device (PAN) | Disconnected"
+  ]
+}

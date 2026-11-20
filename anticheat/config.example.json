@@ -1,0 +1,110 @@
+{
+  "event": "Riverside HS Spring Invitational",
+
+  "stations": {
+    "10.20.1.11": {"id": "P01", "team": "Hawks", "player": "jsmith"},
+    "10.20.1.12": {"id": "P02", "team": "Hawks", "player": "alee"},
+    "10.20.1.13": {"id": "P03", "team": "Hawks", "player": "mgarcia"},
+    "10.20.1.14": {"id": "P04", "team": "Hawks", "player": "tnguyen"},
+    "10.20.1.15": {"id": "P05", "team": "Hawks", "player": "kpatel"},
+    "10.20.1.21": {"id": "P06", "team": "Otters", "player": "rbrown"},
+    "10.20.1.22": {"id": "P07", "team": "Otters", "player": "cwilson"},
+    "10.20.1.23": {"id": "P08", "team": "Otters", "player": "dkim"},
+    "10.20.1.24": {"id": "P09", "team": "Otters", "player": "elopez"},
+    "10.20.1.25": {"id": "P10", "team": "Otters", "player": "fdavis"}
+  },
+
+  "allowed_domains": [
+    "epicgames.com", "epicgames.dev", "unrealengine.com", "rocketleague.com", "psyonix.com",
+    "riotgames.com", "riotcdn.net", "leagueoflegends.com", "playvalorant.com", "pvp.net",
+    "battle.net", "blizzard.com", "overwatch.com",
+    "steampowered.com", "steamcommunity.com", "steamcontent.com", "steamserver.net",
+    "playvs.com", "nasef.org", "start.gg", "challonge.com",
+    "microsoft.com", "windowsupdate.com", "msftconnecttest.com", "xboxlive.com",
+    "akamaized.net", "cloudfront.net", "fastly.net",
+    "discord.com", "discord.gg", "discordapp.com"
+  ],
+
+  "blocked_domains": {
+    "vpn": [
+      "nordvpn.com", "nordvpn.net", "expressvpn.com", "protonvpn.com", "proton.me",
+      "surfshark.com", "privateinternetaccess.com", "mullvad.net", "windscribe.com",
+      "hotspotshield.com", "tunnelbear.com", "cyberghostvpn.com", "hide.me"
+    ],
+    "remote_access": [
+      "teamviewer.com", "anydesk.com", "parsec.app", "parsecgaming.com",
+      "remotedesktop.google.com", "rustdesk.com", "splashtop.com", "logmein.com",
+      "connectwise.com", "screenconnect.com", "ngrok.io", "ngrok.com"
+    ],
+    "cheat": [
+      "unknowncheats.me", "mpgh.net", "elitepvpers.com", "aimware.net",
+      "skycheats.com", "iwantcheats.net", "engineowning.to", "lavicheats.com",
+      "cheatengine.org", "artificialaiming.net"
+    ],
+    "dns_bypass": [
+      "dns.google", "cloudflare-dns.com", "one.one.one.one", "dns.quad9.net",
+      "doh.opendns.com", "dns.nextdns.io", "doh.cleanbrowsing.org"
+    ],
+    "account_sharing": [
+      "boosteria.org", "eloboost.net", "boosting.pro", "legionfarm.com"
+    ]
+  },
+
+  "blocked_ports": {
+    "vpn": {"udp": [1194, 51820, 500, 4500, 1701], "tcp": [1723, 1194]},
+    "dns_bypass": {"tcp": [853], "udp": [853]},
+    "remote_access": {"tcp": [3389, 5900, 5938, 7070, 21115, 21116, 21117, 22], "udp": [3389, 21116]}
+  },
+
+  "flag_unknown_domains": true,
+  "flag_direct_ip": true,
+  "direct_ip_ok_ports": {"udp": [7000, 7500, 8000, 8180, 3074, 27015, 27016, 27017, 27018, 27019, 27020, 5000, 5100, 5222, 5223]},
+
+  "approved_processes": [
+    "rocketleague.exe", "epicgameslauncher.exe", "epicwebhelper.exe",
+    "valorant.exe", "valorant-win64-shipping.exe", "riotclientservices.exe", "riotclientux.exe",
+    "leagueclient.exe", "leagueclientux.exe", "league of legends.exe", "vgc.exe", "vgtray.exe",
+    "overwatch.exe", "battle.net.exe", "agent.exe",
+    "steam.exe", "steamwebhelper.exe", "easyanticheat.exe", "beservice.exe",
+    "discord.exe", "obs64.exe"
+  ],
+
+  "suspicious_processes": {
+    "cheat_tool": ["cheatengine", "cheat engine", "artmoney", "wemod", "x64dbg", "ollydbg", "processhacker", "extremeinjector", "xenos", "ksdumper"],
+    "macro_tool": ["autohotkey", "ahk", "logitechghub_macro", "razer synapse macro", "pulover", "tinytask", "jitbit", "macrorecorder"],
+    "remote_access": ["teamviewer", "anydesk", "parsecd", "rustdesk", "vncserver", "winvnc", "tvnserver", "splashtop", "screenconnect", "chrome remote desktop"],
+    "vpn": ["nordvpn", "expressvpn", "protonvpn", "openvpn", "wireguard", "surfshark", "windscribe", "mullvad", "hotspotshield", "tunnelbear"],
+    "overlay_or_capture": ["aimlab_overlay", "crosshairx", "crosshair v2", "hudsight"]
+  },
+
+  "approved_usb": {
+    "046d:c08b": "Logitech G502 mouse",
+    "046d:c332": "Logitech G502 Proteus mouse",
+    "046d:c539": "Logitech Lightspeed receiver",
+    "1532:0084": "Razer DeathAdder V2 mouse",
+    "1532:0241": "Razer BlackWidow keyboard",
+    "045e:02ea": "Xbox One controller",
+    "045e:0b12": "Xbox Series controller",
+    "054c:0ce6": "PS5 DualSense controller",
+    "0f0d:00c1": "HORI Smash controller adapter",
+    "0951:16a4": "HyperX Cloud headset",
+    "1b1c:1b2d": "Corsair K95 keyboard",
+    "413c:2113": "Dell KB216 keyboard",
+    "413c:301a": "Dell MS116 mouse"
+  },
+
+  "suspicious_usb": {
+    "2508:0032": "Cronus Zen (controller spoofer)",
+    "2508:0001": "Cronus Max (controller spoofer)",
+    "20d6:a713": "XIM Matrix (mouse-to-controller adapter)",
+    "05a0:0008": "XIM Apex (mouse-to-controller adapter)",
+    "1d50:6089": "HackRF / generic hacking tool",
+    "16c0:0486": "Teensy (programmable keystroke injector)",
+    "1b4f:9206": "Arduino Pro Micro (programmable HID)",
+    "2341:8036": "Arduino Leonardo (programmable HID)",
+    "16d0:0753": "Digispark (programmable keystroke injector)",
+    "1d6b:0104": "Linux USB gadget (possible keystroke injector)"
+  },
+
+  "ping_warn_ms": 60
+}
